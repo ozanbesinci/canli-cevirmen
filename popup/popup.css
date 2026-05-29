@@ -1,0 +1,347 @@
+/* CLAUDE.md §6 — lacivert tema, sabit renk paleti */
+:root {
+  --bg-panel: #0e2a5e;
+  --bg-area: #16356b;
+  --border-area: #2a4a85;
+  --bg-selected: #1e4a9e;
+  --border-selected: #4f86e8;
+  --bg-input: #0a2150;
+  --btn-accent: #2e63c8;
+  --text: #ffffff;
+  --text-secondary: #b9c6e0;
+  --text-muted: #8a9bc4;
+  --label: #9db0da;
+  --divider: #21407a;
+  --ok: #8ee39a;
+  --err: #ff9a9a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 330px;
+  margin: 0;
+  padding: 14px 16px 12px;
+  background: var(--bg-panel);
+  color: var(--text);
+  font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+.sub {
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin: 2px 0 12px;
+}
+
+.block {
+  background: var(--bg-area);
+  border: 1px solid var(--border-area);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+
+.group-label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--label);
+  margin: 0 0 8px;
+}
+
+.hint {
+  color: var(--text-muted);
+  font-size: 11px;
+  margin: 6px 0 0;
+}
+.hint.center {
+  text-align: center;
+}
+.hint.subtle {
+  margin-top: 10px;
+}
+.hint.ok {
+  color: var(--ok);
+}
+.hint.err {
+  color: var(--err);
+}
+
+.hidden {
+  display: none !important;
+}
+
+.disabled-block {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.usage-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+.usage-val {
+  font-family: ui-monospace, "Consolas", monospace;
+  color: var(--text);
+}
+
+a {
+  color: var(--border-selected);
+}
+
+/* Segmented kontrol */
+.segmented {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-area);
+  border-radius: 8px;
+  padding: 3px;
+}
+.segmented.small {
+  flex: 1;
+}
+.seg-btn {
+  flex: 1;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.seg-btn:hover:not(:disabled) {
+  color: var(--text);
+}
+.seg-btn.active {
+  background: var(--bg-selected);
+  border-color: var(--border-selected);
+  color: var(--text);
+  font-weight: 600;
+}
+.seg-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Modeller */
+.sort-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.mini-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  min-width: 38px;
+}
+.model-row {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.model-row:last-child {
+  margin-bottom: 0;
+}
+.model-row label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+select,
+textarea {
+  width: 100%;
+  background: var(--bg-input);
+  color: var(--text);
+  border: 1px solid var(--border-area);
+  border-radius: 6px;
+  padding: 7px 9px;
+  font: inherit;
+  outline: none;
+}
+select:focus,
+textarea:focus {
+  border-color: var(--border-selected);
+}
+textarea {
+  resize: vertical;
+  margin-top: 8px;
+}
+
+/* Ses grupları */
+.voice-group-label {
+  font-size: 10px;
+  color: var(--label);
+  margin: 8px 0 4px;
+}
+.voice-group:first-child .voice-group-label {
+  margin-top: 0;
+}
+.voice-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.voice-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-area);
+  border-radius: 6px;
+  padding: 3px 4px 3px 9px;
+}
+.voice-item.active {
+  background: var(--bg-selected);
+  border-color: var(--border-selected);
+}
+.voice-name {
+  background: none;
+  border: 0;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+.voice-preview {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--btn-accent);
+  border: 0;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 10px;
+  cursor: pointer;
+  line-height: 1;
+}
+.voice-preview:hover {
+  filter: brightness(1.12);
+}
+.voice-preview.playing {
+  background: var(--border-selected);
+}
+
+/* Ton chip'leri */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.chip {
+  background: var(--bg-input);
+  border: 1px solid var(--border-area);
+  border-radius: 14px;
+  padding: 5px 11px;
+  color: var(--text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+.chip.active {
+  background: var(--bg-selected);
+  border-color: var(--border-selected);
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* Sliderlar */
+.slider-row {
+  display: grid;
+  grid-template-columns: 64px 1fr 42px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.slider-row label {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.slider-row .val {
+  color: var(--text);
+  font-family: ui-monospace, "Consolas", monospace;
+  font-size: 12px;
+  text-align: right;
+}
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--bg-input);
+  border-radius: 2px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: var(--btn-accent);
+  border: 1px solid var(--border-selected);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* Düğmeler */
+button.primary {
+  background: var(--btn-accent);
+  color: var(--text);
+  border: 1px solid var(--btn-accent);
+  border-radius: 8px;
+  padding: 7px 14px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+button.primary:hover {
+  filter: brightness(1.1);
+}
+button.primary.big {
+  width: 100%;
+  padding: 11px;
+  font-size: 14px;
+}
+button.primary.stop {
+  background: #b3402f;
+  border-color: #b3402f;
+}
+
+/* Altbilgi */
+footer {
+  margin-top: 12px;
+  padding-top: 9px;
+  border-top: 1px solid var(--divider);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+.version {
+  display: inline-block;
+  padding: 1px 5px;
+  margin-right: 5px;
+  background: var(--bg-input);
+  border: 1px solid var(--divider);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-family: ui-monospace, "Consolas", monospace;
+  font-size: 10px;
+}

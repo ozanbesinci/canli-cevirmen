@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Canlı Çevirmen — Ayarlar</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main class="panel">
+      <h1>Canlı Çevirmen</h1>
+      <p class="subtitle">Ayarlar</p>
+
+      <section class="block">
+        <p class="group-label">OpenAI API anahtarı</p>
+        <div class="row">
+          <input
+            id="api-key"
+            type="password"
+            placeholder="sk-..."
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button
+            id="toggle-key"
+            type="button"
+            class="icon-btn"
+            title="Göster / gizle"
+            aria-label="Göster / gizle"
+          >
+            👁
+          </button>
+        </div>
+        <div class="row">
+          <button id="save-key" type="button" class="primary">Kaydet</button>
+          <button id="test-key" type="button">Bağlantıyı test et</button>
+          <a id="delete-key" href="#" class="link danger">Anahtarı sil</a>
+        </div>
+        <p id="key-status" class="hint">Anahtar yüklü değil.</p>
+        <p class="hint">
+          Anahtarın yalnızca bu tarayıcıda saklanır ve doğrudan OpenAI'a gönderilir.
+        </p>
+      </section>
+
+      <!-- Çeviri modu -->
+      <section class="block">
+        <p class="group-label">Çeviri modu</p>
+        <div class="segmented" id="mode-seg">
+          <button type="button" data-mode="kaliteli" class="seg-btn active">
+            Kaliteli
+          </button>
+          <button type="button" data-mode="canli" class="seg-btn">Canlı</button>
+        </div>
+        <p class="hint" id="mode-hint">
+          Çeviri-önce: tam bağlamla doğal Türkçe dublaj.
+        </p>
+      </section>
+
+      <!-- Modeller -->
+      <section class="block" id="models-block">
+        <p class="group-label">Modeller</p>
+        <div class="row sort-row">
+          <span class="mini-label">Sırala</span>
+          <div class="segmented small" id="sort-seg">
+            <button type="button" data-sort="kalite" class="seg-btn active">Kalite</button>
+            <button type="button" data-sort="hiz" class="seg-btn">Hız</button>
+            <button type="button" data-sort="maliyet" class="seg-btn">Maliyet</button>
+          </div>
+        </div>
+        <div class="model-row">
+          <label for="model-transcription">Transkripsiyon</label>
+          <select id="model-transcription"></select>
+        </div>
+        <div class="model-row">
+          <label for="model-translation">Çeviri</label>
+          <select id="model-translation"></select>
+        </div>
+        <div class="model-row">
+          <label for="model-tts">Seslendirme</label>
+          <select id="model-tts"></select>
+        </div>
+      </section>
+
+      <!-- Ses -->
+      <section class="block" id="voice-block">
+        <p class="group-label">Ses</p>
+        <div id="voice-groups"></div>
+      </section>
+
+      <!-- Ton -->
+      <section class="block" id="tone-block">
+        <p class="group-label">Ton</p>
+        <div class="chips" id="tone-chips"></div>
+        <div id="custom-tone-wrap" class="hidden">
+          <textarea
+            id="custom-tone"
+            rows="2"
+            placeholder="Modele gönderilecek ton talimatını yaz…"
+          ></textarea>
+        </div>
+        <p class="hint" id="live-note" hidden>
+          Canlı modda ses, videodaki konuşmacıya göre otomatik ayarlanır.
+        </p>
+      </section>
+
+      <section class="block">
+        <p class="group-label">Aylık maliyet uyarısı</p>
+        <div class="row">
+          <label for="threshold">Eşik (USD)</label>
+          <input
+            id="threshold"
+            type="number"
+            min="0"
+            step="1"
+            placeholder="0 = kapalı"
+          />
+          <button id="save-threshold" type="button" class="primary">Kaydet</button>
+        </div>
+        <p class="hint">
+          Bu aylık tahmini maliyet eşiği aşılınca popup'ta bir uyarı gösterilir
+          (engelleme değil, yalnızca bilgi). Tahminîdir; kesin tutar için OpenAI
+          panosu esastır.
+        </p>
+      </section>
+
+      <section class="block subtle">
+        <p class="hint">
+          <strong>Güvenlik notu:</strong> OpenAI hesabında aylık harcama limiti
+          belirlemeni şiddetle öneririm.
+        </p>
+      </section>
+
+      <footer>
+        <span id="version" class="version"></span>
+        Ozan Beşinci tarafından geliştirildi
+      </footer>
+    </main>
+    <audio id="preview-audio" hidden></audio>
+    <script type="module" src="options.js"></script>
+  </body>
+</html>

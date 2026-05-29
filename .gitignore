@@ -1,0 +1,15 @@
+# Bağımlılıklar
+node_modules/
+package-lock.json
+
+# Üretilen çıktılar
+cikti.mp3
+*.mp3
+
+# Kişisel / yerel ayarlar (izin kuralları, yerel geçersiz kılmalar)
+.claude/settings.local.json
+
+# OS / editör
+.DS_Store
+Thumbs.db
+*.log

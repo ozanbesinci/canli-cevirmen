@@ -1,0 +1,12 @@
+{
+  "name": "canli-cevirmen",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "bump": "node scripts/bump.js"
+  },
+  "dependencies": {
+    "music-metadata": "^10.5.0"
+  }
+}

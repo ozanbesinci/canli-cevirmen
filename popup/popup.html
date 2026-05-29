@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Canlı Çevirmen</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Canlı Çevirmen</h1>
+      <div class="sub">YouTube'u Türkçe dinle</div>
+    </header>
+
+    <!-- Ses seviyesi -->
+    <section class="block">
+      <p class="group-label">Ses seviyesi</p>
+      <div class="slider-row">
+        <label for="original">Orijinal</label>
+        <input id="original" type="range" min="0" max="100" value="25" />
+        <span id="original-val" class="val">25%</span>
+      </div>
+      <div class="slider-row">
+        <label for="dub">Dublaj</label>
+        <input id="dub" type="range" min="0" max="100" value="100" />
+        <span id="dub-val" class="val">100%</span>
+      </div>
+    </section>
+
+    <!-- Dublajı başlat -->
+    <button id="start-stop" type="button" class="primary big">Dublajı başlat</button>
+    <p id="status" class="hint center">Hazır.</p>
+
+    <!-- Tahmini maliyet -->
+    <section class="block" id="usage-block">
+      <p class="group-label">Tahmini maliyet</p>
+      <div class="usage-row">
+        <span>Bu video</span>
+        <span id="usage-video" class="usage-val">~$0.00</span>
+      </div>
+      <div class="usage-row">
+        <span>Bu ay (<span id="usage-ym">—</span>)</span>
+        <span id="usage-month" class="usage-val">~$0.00</span>
+      </div>
+      <p id="usage-warn" class="hint err" hidden></p>
+      <p class="hint">Tahminîdir; kesin tutar için OpenAI panosu esastır.</p>
+    </section>
+
+    <!-- Aktif mod göstergesi (seçim ayarlardadır) -->
+    <p class="hint center" id="mode-line">
+      Mod: Kaliteli · ses/ton/model <a href="#" id="open-options">ayarlardan</a>
+    </p>
+
+    <footer>
+      <span id="version" class="version"></span>
+      Ozan Beşinci tarafından geliştirildi
+    </footer>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

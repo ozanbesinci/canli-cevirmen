@@ -340,13 +340,24 @@ function startNextSegment() {
   const src = audioContext.createBufferSource();
   src.buffer = next.audioBuffer;
 
+  // Gerçek TTS süresi slot'tan taşıyorsa oynatma hızını artır (max 1.5x).
+  // Bu SW'daki karakter-sayısı tahmininden bağımsız, gerçek AudioBuffer üzerinde
+  // çalışır — drift'in birincil kaynağını kapatır.
+  const slotDur = next.endSec - next.startSec;
+  const rawDur = next.audioBuffer.duration - bufferOffset;
+  let playRate = 1.0;
+  if (slotDur > 2.0 && rawDur > slotDur * 1.12) {
+    playRate = Math.min(1.5, rawDur / slotDur);
+  }
+  src.playbackRate.value = playRate;
+
   // Her segmente kendi gain zarfı: baş/son tıklama ("pat") sesini önlemek için
   // 8 ms fade-in ve fade-out. src → segGain → dubGain.
   const segGain = audioContext.createGain();
   src.connect(segGain).connect(dubGain);
 
   const FADE = 0.008;
-  const playDur = next.audioBuffer.duration - bufferOffset;
+  const playDur = rawDur / playRate; // hızlandırılmış gerçek oynatma süresi
   const g = segGain.gain;
   g.setValueAtTime(0, audioWhen);
   g.linearRampToValueAtTime(1, audioWhen + FADE);

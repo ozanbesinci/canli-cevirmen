@@ -802,7 +802,7 @@ async function startDubbing(tabId) {
   dubState.active = true;
   dubState.tabId = tabId;
   dubState.abort = false;
-  dubState.startTime = 0;
+  dubState.startTime = 0; // runDubPipeline için (kaliteli mod)
   dubState.videoId = capsResp.videoId || null;
   dubState.videoState = { currentTime: 0, paused: false, ended: false };
 
@@ -1235,8 +1235,6 @@ async function runStreamPipeline(captions, defaults, apiKey, videoTitle) {
       return;
     }
     const estNow = dubState.videoState.currentTime;
-    // İlk videoState henüz gelmeden işlem başlatma
-    if (estNow === 0 && dubState.videoState.paused) return;
     for (let i = 0; i < sentences.length; i++) {
       if (sentenceStates[i] !== "idle") continue;
       const range = ranges[i];

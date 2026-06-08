@@ -1139,7 +1139,7 @@ async function runStreamPipeline(captions, defaults, apiKey, videoTitle) {
   try {
     sentences = await cleanAndSegment(rawText, {
       apiKey,
-      model: "gpt-5.5",
+      model: "gpt-5.5", // segmentasyon her zaman gpt-5.5 — çeviri modelinden bağımsız
       onUsage: (u) =>
         addCost(costTranslation("gpt-5.5", u.prompt_tokens || 0, u.completion_tokens || 0)),
     });
@@ -1241,6 +1241,8 @@ async function runStreamPipeline(captions, defaults, apiKey, videoTitle) {
       return;
     }
     const estNow = dubState.videoState.currentTime;
+    // İlk videoState henüz gelmeden işlem başlatma
+    if (estNow === 0 && dubState.videoState.paused) return;
     for (let i = 0; i < sentences.length; i++) {
       if (sentenceStates[i] !== "idle") continue;
       const range = ranges[i];

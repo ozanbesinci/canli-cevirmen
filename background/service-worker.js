@@ -792,12 +792,6 @@ async function startDubbing(tabId) {
     return { ok: false, error: `Capture başlatılamadı: ${capRes?.error || "?"}` };
   }
 
-  // Pipeline yetişene kadar videoyu duraklat (CLAUDE.md §2 read-ahead davranışı).
-  // Dönen currentTime, dublajın başlangıç noktasıdır; öncekiler TTS'lenmez.
-  const pauseResp = await chrome.tabs
-    .sendMessage(tabId, { target: "content", type: "pauseVideo" })
-    .catch(() => null);
-  const startTime = pauseResp?.currentTime ?? 0;
 
   // Content'in zaman raporlamasını başlat
   await chrome.tabs
@@ -808,16 +802,16 @@ async function startDubbing(tabId) {
   dubState.active = true;
   dubState.tabId = tabId;
   dubState.abort = false;
-  dubState.startTime = startTime;
+  dubState.startTime = 0;
   dubState.videoId = capsResp.videoId || null;
-  dubState.videoState = { currentTime: startTime, paused: true, ended: false };
+  dubState.videoState = { currentTime: 0, paused: false, ended: false };
 
   const defaults = await getDefaults();
   const videoTitle = capsResp.videoTitle || "";
 
-  // Pipeline'ı arkada başlat (popup'ı bekletme)
-  runDubPipeline(capsResp.captions, defaults, apiKey, videoTitle).catch((err) => {
-    console.error("[SW] Pipeline hatası:", err);
+  // Akış pipeline'ını arkada başlat — video duraklatılmaz
+  runStreamPipeline(capsResp.captions, defaults, apiKey, videoTitle).catch((err) => {
+    console.error("[SW] Akış pipeline hatası:", err);
   });
 
   return { ok: true, sentenceCountPlanned: capsResp.captions.length };

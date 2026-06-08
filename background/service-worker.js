@@ -716,7 +716,8 @@ async function getCaptureState() {
 // --- Dubbing orkestrasyonu ------------------------------------------------
 
 const READ_AHEAD_SEC = 60; // playback noktasının önünde bu kadar hazır tut
-const MAX_TTS_CONCURRENCY = 2;
+const LOOKAHEAD_SEC = 3; // scheduler cümleyi bu kadar sn öncesinden işlemeye başlar
+const MAX_TTS_CONCURRENCY = 3;
 
 const dubState = {
   active: false,
@@ -940,7 +941,7 @@ function chooseSpeed(text, origDur) {
   const est = estimateTrSeconds(text);
   const ratio = est / origDur;
   if (ratio <= 1.15) return 1.0; // küçük taşmaları kabul et
-  return Math.min(1.25, ratio); // tavan 1.25 (eskiden 1.5)
+  return Math.min(1.5, ratio);  // tavan 1.5 — offscreen da aynı sınırı kullanır
 }
 
 // Uint8Array → base64 (büyük veriler için chunked)
@@ -1118,4 +1119,148 @@ async function runDubPipeline(captions, defaults, apiKey, videoTitle) {
   if (!dubState.abort && dubState.active) {
     setStatus("running", "Çalışıyor (tüm bölümler hazırlandı).");
   }
+}
+
+async function runStreamPipeline(captions, defaults, apiKey, videoTitle) {
+  const wordStream = buildWordStream(captions);
+  const rawText = captions.map((c) => c.text).join(" ");
+  const translationModel = defaults.modelTranslation || "gpt-5.4-mini";
+  const ttsModel = defaults.modelTts || "gpt-4o-mini-tts";
+
+  console.log(
+    `[SW] Akış pipeline başlıyor — ${captions.length} altyazı parçası, ` +
+      `çeviri=${translationModel}, ses=${defaults.voice}@${ttsModel}`,
+  );
+
+  resetSessionCost();
+  setStatus("preparing", "Hazırlanıyor…");
+
+  let sentences;
+  try {
+    sentences = await cleanAndSegment(rawText, {
+      apiKey,
+      model: "gpt-5.5",
+      onUsage: (u) =>
+        addCost(costTranslation("gpt-5.5", u.prompt_tokens || 0, u.completion_tokens || 0)),
+    });
+  } catch (err) {
+    console.error("[SW] Akış cleanAndSegment hatası:", err);
+    if (isAuthError(err)) await abortForAuth();
+    else setStatus("error", `Hazırlık başarısız: ${err.message}`);
+    return;
+  }
+  console.log(`[SW] Akış: ${sentences.length} cümle bulundu.`);
+  setStatus("running", "Çalışıyor");
+
+  const ranges = mapSentencesToTimes(sentences, wordStream);
+  for (const r of ranges) {
+    if (r && r.end < r.start) r.end = r.start + 0.5;
+  }
+
+  // 'idle' | 'processing' | 'done'
+  const sentenceStates = new Array(sentences.length).fill("idle");
+  const contextPairs = [];
+  const sem = semaphore(MAX_TTS_CONCURRENCY);
+
+  async function processSentence(i) {
+    const range = ranges[i];
+    const sentence = sentences[i];
+
+    let tr;
+    try {
+      tr = await translate({
+        sentence,
+        contextPairs: contextPairs.slice(-4),
+        videoContext: videoTitle,
+        apiKey,
+        model: translationModel,
+        onUsage: (u) =>
+          addCost(costTranslation(translationModel, u.prompt_tokens || 0, u.completion_tokens || 0)),
+      });
+    } catch (err) {
+      console.error(`[SW] Akış çeviri ${i + 1} hatası:`, err);
+      if (isAuthError(err)) await abortForAuth();
+      else setStatus("warn", "Bir cümle atlandı (geçici hata).");
+      sentenceStates[i] = "done";
+      return;
+    }
+    contextPairs.push({ en: sentence, tr });
+
+    await sem.acquire();
+    try {
+      if (dubState.abort) return;
+      const origDur = range.end - range.start;
+      const speed = chooseSpeed(tr, origDur);
+      const audioU8 = await tts({
+        text: tr,
+        voice: defaults.voice,
+        instructions: defaults.tone,
+        model: ttsModel,
+        speed,
+        format: "mp3",
+        apiKey,
+      });
+      if (dubState.abort) return;
+      addCost(costTts(ttsModel, tr.length));
+      await chrome.runtime
+        .sendMessage({
+          target: "offscreen",
+          type: "queueSegment",
+          segment: {
+            id: i,
+            startSec: range.start,
+            endSec: range.end,
+            speed,
+            originalText: sentence,
+            turkishText: tr,
+            audioBase64: uint8ToBase64(audioU8),
+          },
+        })
+        .catch(() => {});
+      console.log(
+        `[SW] Akış cümle ${i + 1}/${sentences.length} kuyruğa alındı ` +
+          `(${range.start.toFixed(1)}-${range.end.toFixed(1)}s, speed=${speed.toFixed(2)})`,
+      );
+    } catch (err) {
+      console.error(`[SW] Akış TTS ${i + 1} hatası:`, err);
+      if (isAuthError(err)) {
+        dubState.abort = true;
+        await abortForAuth();
+      } else {
+        setStatus("warn", "Bir bölüm seslendirilemedi (atlandı).");
+      }
+    } finally {
+      sem.release();
+      sentenceStates[i] = "done";
+    }
+  }
+
+  const scheduler = setInterval(() => {
+    if (dubState.abort || !dubState.active) {
+      clearInterval(scheduler);
+      return;
+    }
+    const estNow = dubState.videoState.currentTime;
+    for (let i = 0; i < sentences.length; i++) {
+      if (sentenceStates[i] !== "idle") continue;
+      const range = ranges[i];
+      if (!range) { sentenceStates[i] = "done"; continue; }
+      // Geçmişte kalmış cümleleri atla
+      if (range.end < estNow - 2) { sentenceStates[i] = "done"; continue; }
+      // Lookahead penceresine giren cümleleri işle
+      if (range.start - LOOKAHEAD_SEC <= estNow) {
+        sentenceStates[i] = "processing";
+        processSentence(i).catch((err) =>
+          console.error(`[SW] processSentence ${i} beklenmedik hata:`, err),
+        );
+      }
+    }
+    if (sentenceStates.every((s) => s !== "idle")) {
+      clearInterval(scheduler);
+      console.log("[SW] Akış scheduler tamamlandı.");
+      if (!dubState.abort && dubState.active) {
+        setStatus("running", "Çalışıyor (tüm bölümler hazırlandı).");
+      }
+    }
+  }, 300);
 }
